@@ -3,12 +3,11 @@
   "authors": [
     "btrim <btrim.twitch@gmail.com>"
   ],
-  "version": "v0.7.0",
+  "version": "0.7.0",
   "dependencies": {
     "jquery": "^2.1.3",
-    "jquery-ui":">1.0.0",
+    "jquery-ui": ">1.0.0",
     "gsap": "^1.16.0"
-
   },
   "description": "Logic for use in graphics bundles for nodecg-speedcontrol",
   "main": "speedcontrol.js",
