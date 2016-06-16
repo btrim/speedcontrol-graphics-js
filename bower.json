@@ -1,0 +1,21 @@
+{
+  "name": "speedcontrol-graphics-js",
+  "authors": [
+    "btrim <btrim.twitch@gmail.com>"
+  ],
+  "description": "Logic for use in graphics bundles for nodecg-speedcontrol",
+  "main": "speedcontrol.js",
+  "moduleType": [],
+  "keywords": [
+    "speedcontrol"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/btrim/speedcontrol-graphics-js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
