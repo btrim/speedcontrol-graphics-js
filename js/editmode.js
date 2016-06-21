@@ -11,6 +11,12 @@ $(function () {
     // if there are two views with the same sceneID all the elements will not have the correct positions
     var sceneID = $('html').attr('data-sceneid');
 
+    var sceneIDReplicant = nodecg.Replicant("sceneID",speedcontrolBundle, {defaultValue: sceneID});
+    sceneIDReplicant.on('change', function( oldValue, newValue) {
+        sceneID = newValue;
+        console.log("Changed sceneID to " + sceneID);
+    });
+
     var screenHeight = $(window).height();
     var screenWidth = $(window).width();
     console.log("height = " + screenHeight);

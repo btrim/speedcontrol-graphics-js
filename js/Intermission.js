@@ -50,7 +50,7 @@ $(function () {
             comingUpRun = runDataArrayReplicant.value[indexOfNextRun];
         }
         if(!isInitialized) {
-            updateMissedComingUp(newValue, comingUpRun);
+            updateMissedComingUp(oldValue, newValue);
             isInitialized = true;
         }
     });
