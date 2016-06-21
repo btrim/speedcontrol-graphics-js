@@ -18,12 +18,12 @@ $(function () {
     var $gameCaptures = $('.gameCapture');
 
     var $comingUpGame = $('#comingUpGame');
-    var $comingUpCathegory = $('#comingUpCathegory');
+    var $comingUpCategory = $('#comingUpCategory');
     var $comingUpSystem = $('#comingUpSystem');
     var $comingUpPlayer = $('#comingUpPlayer');
 
     var $justMissedGame = $('#justMissedGame');
-    var $justMissedCathegory = $('#justMissedCathegory');
+    var $justMissedCategory = $('#justMissedCategory');
     var $justMissedSystem = $('#justMissedSystem');
     var $justMissedPlayer = $('#justMissedPlayer');
 
@@ -41,34 +41,25 @@ $(function () {
 
     var sceneIDReplicant = nodecg.Replicant("sceneID",speedcontrolBundle, {defaultValue: sceneID});
     sceneIDReplicant.on('change', function(oldValue, newValue) {
-
-            // if( $('#window-container').css("display") != "none") {
-            //     setTimeout(function() {this(oldValue, newValue)},500);
-            //     return;
-            //   }
-                //
-                if( oldValue == newValue )
-                {
-                  return;
-                }
-                sceneID = newValue;
-                if( oldValue ) {
-                toggleStylesheets(false, oldValue);
-                }
-                loadCSS(sceneID, "/graphics/nodecg-speedcontrol/css/editcss/"+sceneID+".css");
-                toggleStylesheets(false, sceneID);
-                toggleStylesheets(true, sceneID);
-              //$('#window-container').fadeIn(1500);
-
-
+        if( oldValue == newValue )
+        {
+          return;
+        }
+        sceneID = newValue;
+        if( oldValue ) {
+        toggleStylesheets(false, oldValue);
+        }
+        loadCSS(sceneID, "/graphics/nodecg-speedcontrol/css/editcss/"+sceneID+".css");
+        toggleStylesheets(false, sceneID);
+        toggleStylesheets(true, sceneID);
     });
 
     // NodeCG Message subscription ###
-    nodecg.listenFor("resetTime", resetAllPlayerTimers);
-    nodecg.listenFor('timerReset', resetTimer);
-    nodecg.listenFor('timerSplit', splitTimer);
-    nodecg.listenFor("displayMarqueeInformation", displayMarquee);
-    nodecg.listenFor("removeMarqueeInformation", removeMarquee);
+    nodecg.listenFor("resetTime", speedcontrolBundle, resetAllPlayerTimers);
+    nodecg.listenFor('timerReset', speedcontrolBundle, resetTimer);
+    nodecg.listenFor('timerSplit', speedcontrolBundle, splitTimer);
+    nodecg.listenFor("displayMarqueeInformation", speedcontrolBundle, displayMarquee);
+    nodecg.listenFor("removeMarqueeInformation", speedcontrolBundle, removeMarquee);
 
     var runDataArrayReplicant = nodecg.Replicant("runDataArray",speedcontrolBundle);
 
@@ -89,28 +80,36 @@ $(function () {
         if(typeof newValue == 'undefined' || newValue == "") {
             return;
         }
-        if(timeoutTwitch != null) {
-            clearTimeout(timeoutTwitch);
-        }
+
+
         console.log(newValue);
 
-        $('#window-container').stop(true,false);
         $('#window-container').fadeOut(1000,function() {
-        updatePlayerContainers(newValue.players.length);
+            //updatePlayerContainers(newValue.players.length);
 
-        $runnerInfoElements.each( function( index, element ) {
-            animation_setGameFieldAlternate($(this),getRunnerInformationName(newValue,index));
-        });
+            updatePlayerContainers(newValue.players.length)
 
+            $runnerInfoElements.each( function( index, element ) {
+                animation_setGameFieldAlternate($(this),getRunnerInformationName(newValue.players,index));
+            });
 
-        timeoutTwitch = setTimeout(displayTwitchInstead, 2000);
+            if(timeoutTwitch != null) {
+                clearTimeout(timeoutTwitch);
+            }
 
-        updateGameCaptures(newValue.players.length, newValue.system);
-        sceneIDReplicant.value = generateSceneID(newValue.players.length, getAspectRatioString( newValue.system));
-        updateSceneFields(newValue);
+            timeoutTwitch = setTimeout(displayTwitchInstead, 2000);
 
-        updateNextRun(newValue);
-        $('#window-container').fadeIn(1000);
+            var aspectRatioKey = newValue.system;
+            if( newValue.aspectRatio !== undefined ) {
+              aspectRatioKey = newValue.aspectRatio;
+            }
+            updateGameCaptures(newValue.players.length, newValue.system);
+
+            sceneIDReplicant.value = generateSceneID(newValue.players.length, getAspectRatioString( aspectRatioKey ));
+            updateSceneFields(newValue);
+
+            updateNextRun(newValue);
+            $('#window-container').fadeIn(1000);
         });
       });
 
@@ -120,13 +119,23 @@ $(function () {
       var template = importNode.querySelector('template');
 
       $('.playerContainer').remove();
+      $('.runnerTimerFinishedContainer').remove();
 
       for( var i=1; i <= count; i++ ) {
         var player = document.importNode(template.content,true);
         player.querySelector('.playerContainer').setAttribute('id','player'+i+'Container');
+        player.querySelector('.runnerTimerFinishedContainer').setAttribute('id','runner'+i+'TimerFinishedContainer');
         document.querySelector('#window-container').appendChild(player);
+        $(player).trigger('create');
+        hideTimerFinished(i-1);
       }
+      $twitchLogos = $('.twitchLogo');
       $runnerInfoElements = $('div.runnerInfo');
+      $runnerTimerFinishedElements = $('.runnerTimerFinished')
+      $runnerTimerFinishedContainers = $('.runnerTimerFinishedContainer');
+      for( var q=0; q < count; q++ ) {
+        hideTimerFinished(q);
+      }
     }
 
     function updateNextRun(newValue) {
@@ -142,7 +151,7 @@ $(function () {
 
         updateMissedComingUp( prevRun, newValue);
     }
-        function findIndexInDataArrayOfRun(run, runDataArray) {
+    function findIndexInDataArrayOfRun(run, runDataArray) {
         var indexOfRun = -1;
         $.each(runDataArray, function (index, value) {
             if(value.runID == run.runID) {
@@ -170,7 +179,7 @@ $(function () {
         }
 
         animation_setGameField($comingUpGame,game);
-        animation_setGameField($comingUpCathegory,category);
+        animation_setGameField($comingUpCategory,category);
         animation_setGameField($comingUpSystem,system);
     }
 
@@ -186,7 +195,7 @@ $(function () {
         }
 
         animation_setGameField($justMissedGame,game);
-        animation_setGameField($justMissedCathegory,category);
+        animation_setGameField($justMissedCategory,category);
         animation_setGameField($justMissedSystem,system);
     }
 
@@ -210,6 +219,16 @@ $(function () {
         }
         // updatePlayerContainers(newValue.length)
         //
+        // $runnerInfoElements.each( function( index, element ) {
+        //     animation_setGameFieldAlternate($(this),getRunnerInformationName(newValue,index));
+        // });
+        //
+        // if(timeoutTwitch != null) {
+        //     clearTimeout(timeoutTwitch);
+        // }
+        //
+        // timeoutTwitch = setTimeout(displayTwitchInstead, 2000);
+
         // $runnerInfoElements.each( function( index, element ) {
         //     animation_setGameFieldAlternate($(this),getRunnerInformationName(newValue,index));
         // });
@@ -423,6 +442,7 @@ $(function () {
 
     $twitchLogos.each( function(index, element) {
         $(this).css('transform', 'scale(0)');
+        //$(this).css('display', 'none');
     });
 
     function generateSceneID(count, aspectRatio) {
@@ -432,7 +452,6 @@ $(function () {
     function updateGameCaptures(count, console_, aspectRatio ) {
       $('.gameCapture').remove();
 
-
       for( var i=1; i <= count; i++ ) {
           var capture = $(document.createElement('div'));
           capture.attr('id','gameCapture'+i);
@@ -441,36 +460,5 @@ $(function () {
           $('#window-container').append(capture);
           capture.trigger("create");
       }
-
-
-
-      // $('.gameCapture').each(function () {
-      //     var aspectRatioMultiplier = getAspectRatio($(this).attr('aspect-ratio'));
-      //     var height = 200;
-      //     var width = height * aspectRatioMultiplier;
-      //     $(this).css('width',width+"px");
-      //     $(this).css('height',height+"px");
-      //     // addCssRule("#"+$(this).attr('id'), {
-      //     //     width: width+"px",
-      //     //     height: height+"px"
-      //     // });
-      // });
-    //  toggleStylesheets(false, sceneID);
-
-      //  toggleStylesheets(false, sceneID);
-      //  toggleStylesheets(true, sceneID);
-
-    //   $('.gameCapture').each( function() {
-    //     if( $(this).width() == 0 ) {
-    //
-    //         var capture = $(this);
-    //         console.log(capture.width());
-    //         var aspectRatioMultiplier = getAspectRatio(capture.attr('aspect-ratio'));
-    //         var height = 200;
-    //         var width = height * aspectRatioMultiplier;
-    //         capture.css('width',width+"px");
-    //         capture.css('height',height+"px");
-    //     }
-    // });
     }
 });
